@@ -47,52 +47,42 @@ plot(
 )
 
 
-### Example of Jane Austen's Books ###
+### Calculating Sentiment of Tweets ###
 
 # Use the get_sentiments() function to get your dictionary of positive
 # and negative words. Use the lexicon which categorizes words into
 # positive and negative.
+
+# afinn_sentiments <- get_sentiments("afinn")
+# nrc_sentiments <- get_sentiments("nrc")
+
 bing_sentiments <- get_sentiments("bing")
 
 
 
 ##### DATA ANALYSIS + WRANGLING #####
-# Read books data in 
-books <- read.csv("austen_books.csv", stringsAsFactors = FALSE)
-head(books)
+# Read tweets data in 
+tweets <- read.csv("tweets.csv", stringsAsFactors = FALSE)
+head(tweets)
 
+# Seperate Obama and Trump's tweets into different data frames
+obama_tweets <- tweets %>% filter(person == "Barack Obama")
+trump_tweets <- tweets %>% filter(person == "Donald Trump")
 
+# Parse the tweets into individual sentences
+obama <- get_sentences(obama_tweets$tweets)
+trump <- get_sentences(trump_tweets$tweets)
 
-# Map each word in the 'books' dataset to its dictionary-prescribed sentiment.
-jane_austen_sentiment <- books %>%
-  inner_join(bing_sentiments, by = "word")
-head(jane_austen_sentiment)
+# Obtain the sentiments for each sentence
+obama_sentiment <- get_sentiment(obama)
+trump_sentiment <- get_sentiment(trump)
 
-
-
-# Instead of having each individual word, count the number of positive/negative
-# words in each chapter.
-jane_austen_sentiment <- jane_austen_sentiment %>%
-  count(book, chapter, sentiment)
-
-
-
-# A chapter's overarching feeling will be calculated by the number of positive
-# words minus the number of negative words. Create a new column called 
-# 'sentiment' with this value.
-jane_austen_sentiment <- jane_austen_sentiment %>%
-  spread(sentiment, n, fill = 0) %>%
-  mutate(sentiment = positive - negative)
+# Calculate total sentiment for each person
+obama_sentiment <- sum(obama_sentiment) # 11.95
+trump_sentiment <- sum(trump_sentiment) # 10.55
 
 
 
 
-##### CREATE OUR VISUALIZATION #####
-# Use ggplot to plot each chapter's sentiment by book.
-
-ja_graph <- ggplot(jane_austen_sentiment, aes(chapter, sentiment, fill = book)) +
-  geom_col(show.legend = FALSE) +
-  facet_wrap(~book, ncol = 2, scales = "free_x")
-ja_graph
 
 
